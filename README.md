@@ -37,9 +37,23 @@ coordinated by a Jev squad commander.
 ## Run
 
 ```bash
-npm start                                   # mock brain, no key needed
-TYPESAFE_API_KEY=... npm start              # real Jev (early access / waitlist)
+cp .env.example .env                        # one-time setup
+npm start                                   # mock brain if TYPESAFE_API_KEY is empty
 ```
+
+For live Jev requests, put the key in `.env`:
+
+```dotenv
+TYPESAFE_API_KEY=...
+JEV_BASE_URL=https://api.typesafe.ai/v1/systemone
+JEV_MODEL=jev-latest
+PORT=5173
+```
+
+`.env` is ignored by git and is loaded only by the server; the browser never receives
+`TYPESAFE_API_KEY`. Environment variables supplied by the shell still take precedence
+over values from `.env`. `JEV_BASE_URL` should contain the complete request URL; for
+TypeSafe the usual endpoint is `/v1/systemone`, but it is intentionally configurable.
 
 Open http://localhost:5173. Controls: WASD, Shift sprint, C crouch, Space jump, mouse aim,
 click fire, G debug paths, P export Jev log, R restart.
@@ -47,8 +61,8 @@ click fire, G debug paths, P export Jev log, R restart.
 ## Architecture
 
 ```
-server.js                 zero-dep static server + /api/jev proxy (key stays server-side,
-                          429/529 retried with backoff) → POST api.typesafe.ai/v1/systemone
+server.js                 static server + /api/jev proxy (key stays server-side,
+                          429/529 retried with backoff) → POST JEV_BASE_URL
 public/engine/
   Engine.js               scene/renderer, fixed 60 Hz step, entities + systems, bloom
   Physics.js              gravity, cylinder bodies vs AABBs, line-of-sight

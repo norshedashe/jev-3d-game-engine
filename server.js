@@ -1,6 +1,7 @@
-// Zero-dependency dev server + Jev proxy.
+// Dev server + Jev proxy.
 // Keeps TYPESAFE_API_KEY on the server; the browser only talks to /api/jev.
 // With no key set, /api/jev returns 501 and the browser falls back to its local mock brain.
+import "dotenv/config";
 import http from "node:http";
 import { readFile } from "node:fs/promises";
 import { extname, join, normalize } from "node:path";
@@ -8,7 +9,7 @@ import { fileURLToPath } from "node:url";
 
 const PORT = Number(process.env.PORT ?? 5173);
 const ROOT = join(fileURLToPath(new URL(".", import.meta.url)), "public");
-const JEV_URL = "https://api.typesafe.ai/v1/systemone";
+const JEV_BASE_URL = process.env.JEV_BASE_URL?.trim();
 const API_KEY = process.env.TYPESAFE_API_KEY?.trim();
 const MODEL = process.env.JEV_MODEL ?? "jev-latest";
 
@@ -20,7 +21,7 @@ const MIME = {
 };
 
 async function callJev(body, attempt = 0) {
-  const res = await fetch(JEV_URL, {
+  const res = await fetch(JEV_BASE_URL, {
     method: "POST",
     headers: { Authorization: `Bearer ${API_KEY}`, "Content-Type": "application/json" },
     body: JSON.stringify({ ...body, model: MODEL }),
@@ -55,7 +56,8 @@ http
       const url = new URL(req.url, "http://x");
 
       if (url.pathname === "/api/jev/status") {
-        return send(res, 200, { live: Boolean(API_KEY), model: API_KEY ? MODEL : "mock" });
+        const live = Boolean(API_KEY && JEV_BASE_URL);
+        return send(res, 200, { live, model: live ? MODEL : "mock" });
       }
 
       if (url.pathname === "/api/jev" && req.method === "POST") {
@@ -64,6 +66,7 @@ http
           return send(res, 422, { error: "questions required" });
         }
         if (!API_KEY) return send(res, 501, { error: "TYPESAFE_API_KEY not set" });
+        if (!JEV_BASE_URL) return send(res, 501, { error: "JEV_BASE_URL not set" });
         const t0 = performance.now();
         const out = await callJev(body);
         return send(res, 200, { ...out, _latencyMs: Math.round(performance.now() - t0) });
@@ -81,5 +84,7 @@ http
   })
   .listen(PORT, () => {
     console.log(`Jev3D running → http://localhost:${PORT}`);
-    console.log(API_KEY ? `Jev: LIVE (${MODEL})` : "Jev: MOCK mode (set TYPESAFE_API_KEY for the real model)");
+    console.log(API_KEY && JEV_BASE_URL
+      ? `Jev: LIVE (${MODEL})`
+      : "Jev: MOCK mode (set TYPESAFE_API_KEY and JEV_BASE_URL for the real model)");
   });
