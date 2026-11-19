@@ -76,6 +76,9 @@ class Game {
     e.addSystem({
       update: (dt) => this.tick(dt),
       lateUpdate: (dt) => {
+        if (e.input.wasPressed("KeyR")) location.reload();
+        if (e.input.wasPressed("KeyG")) this.debug = !this.debug;
+        if (e.input.wasPressed("KeyP")) this.exportRecording();
         for (const c of this.cores) if (c.visible) c.rotation.y += dt * 2;
         this.tracers = this.tracers.filter((t) => {
           t.life -= dt;
@@ -87,11 +90,6 @@ class Game {
       },
     });
 
-    addEventListener("keydown", (ev) => {
-      if (ev.code === "KeyR") location.reload();
-      if (ev.code === "KeyG") this.debug = !this.debug;
-      if (ev.code === "KeyP") this.exportRecording();
-    });
     e.start();
   }
 

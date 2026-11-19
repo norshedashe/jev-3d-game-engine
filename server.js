@@ -50,8 +50,8 @@ function send(res, status, data, type = "application/json") {
   res.end(typeof data === "string" || Buffer.isBuffer(data) ? data : JSON.stringify(data));
 }
 
-http
-  .createServer(async (req, res) => {
+export function createServer() {
+  return http.createServer(async (req, res) => {
     try {
       const url = new URL(req.url, "http://x");
 
@@ -81,10 +81,35 @@ http
       console.error(err);
       send(res, err.status ?? 500, { error: String(err.message ?? err) });
     }
-  })
-  .listen(PORT, () => {
-    console.log(`Jev3D running → http://localhost:${PORT}`);
+  });
+}
+
+export function startServer({ port = PORT } = {}) {
+  const server = createServer();
+  return new Promise((resolve, reject) => {
+    const onError = (err) => {
+      server.removeListener("listening", onListening);
+      reject(err);
+    };
+    const onListening = () => {
+      server.removeListener("error", onError);
+      resolve(server);
+    };
+    server.once("error", onError);
+    server.once("listening", onListening);
+    server.listen(port, "127.0.0.1");
+  });
+}
+
+if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
+  startServer().then((server) => {
+    const address = server.address();
+    console.log(`Jev3D server listening on http://127.0.0.1:${address.port}`);
     console.log(API_KEY && JEV_BASE_URL
       ? `Jev: LIVE (${MODEL})`
       : "Jev: MOCK mode (set TYPESAFE_API_KEY and JEV_BASE_URL for the real model)");
+  }).catch((err) => {
+    console.error(err);
+    process.exitCode = 1;
   });
+}

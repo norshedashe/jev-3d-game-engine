@@ -55,8 +55,28 @@ PORT=5173
 over values from `.env`. `JEV_BASE_URL` should contain the complete request URL; for
 TypeSafe the usual endpoint is `/v1/systemone`, but it is intentionally configurable.
 
-Open http://localhost:5173. Controls: WASD, Shift sprint, C crouch, Space jump, mouse aim,
-click fire, G debug paths, P export Jev log, R restart.
+Open http://localhost:5173. Controls: WASD, Shift sprint, C or Ctrl crouch, Space jump,
+mouse aim, click fire, G debug paths, P export Jev log, R restart. The browser build
+prevents defaults for gameplay keys and clears input when focus or pointer lock is lost,
+but browser-owned commands such as closing a tab cannot be blocked reliably by a webpage.
+
+### Desktop mode
+
+Electron provides the recommended game mode when browser shortcuts must not interrupt
+play. It runs the same local server on an ephemeral loopback port, opens a fullscreen
+kiosk window, removes the application menu, and blocks common navigation/devtools
+accelerators (`Ctrl+W`, `Ctrl+L`, `Ctrl+R`, `F5`, `Alt+Left/Right`, and similar).
+
+```bash
+npm run desktop:dev                         # windowed development mode
+npm run desktop                             # fullscreen kiosk mode
+npm run package:win                         # build a Windows portable executable
+```
+
+`desktop:dev` is intentionally windowed so developer tools and normal window controls
+remain available. Production kiosk mode does not promise to block operating-system
+shortcuts such as `Ctrl+Alt+Del` or forced process termination. The Jev API key remains
+in the server environment and is never exposed to the renderer.
 
 ## Architecture
 

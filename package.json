@@ -2,16 +2,38 @@
   "name": "jev3d",
   "version": "0.1.0",
   "private": true,
+  "main": "desktop.cjs",
   "type": "module",
   "description": "A small Three.js 3D game engine with Jev (TypeSafe AI System One) driving NPC decisions.",
   "scripts": {
     "start": "node server.js",
-    "dev": "node --watch server.js"
+    "dev": "node --watch server.js",
+    "desktop": "electron .",
+    "desktop:dev": "set JEV_DESKTOP_DEV=1&& electron .",
+    "package:win": "electron-builder --win"
   },
   "engines": {
     "node": ">=18"
   },
   "dependencies": {
     "dotenv": "^18.0.9"
+  },
+  "devDependencies": {
+    "electron": "^45.3.0",
+    "electron-builder": "^26.18.0"
+  },
+  "build": {
+    "appId": "ai.typesafe.jev3d",
+    "productName": "Jev3D Sentinels",
+    "files": [
+      "desktop.cjs",
+      "server.js",
+      "public/**/*",
+      "package.json",
+      "node_modules/dotenv/**/*"
+    ],
+    "win": {
+      "target": "portable"
+    }
   }
 }

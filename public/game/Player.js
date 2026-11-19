@@ -72,8 +72,8 @@ export class Player {
     if (input.isDown("KeyD")) move.add(right);
     if (input.isDown("KeyA")) move.sub(right);
     this.moving = move.lengthSq() > 0;
-    this.crouching = input.isDown("KeyC") || input.isDown("ControlLeft");
-    this.sprinting = input.isDown("ShiftLeft") && this.moving && !this.crouching;
+    this.crouching = input.isDown("KeyC") || input.isDown("ControlLeft") || input.isDown("ControlRight");
+    this.sprinting = (input.isDown("ShiftLeft") || input.isDown("ShiftRight")) && this.moving && !this.crouching;
     const speed = this.crouching ? 2.6 : this.sprinting ? 9 : 5.5;
     const s = this.crouching ? 0.65 : 1;
     this.mesh.scale.y += (s - this.mesh.scale.y) * 0.3;
